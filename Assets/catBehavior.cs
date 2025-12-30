@@ -6,11 +6,13 @@ public class catBehavior : MonoBehaviour
 {
     [SerializeField] private float throwMult = 1f;
     [SerializeField] private float maxStamina = 5f;
+    [SerializeField] private float maxDragSpeed = 10f;
     private float stamina;
     public Image staminaBar;
     private Rigidbody2D rb;
     private Collider2D col;
-    private Vector2 MousePos;
+    private Vector2 mousePos;
+    private Vector2 lastMousePos;
     private Vector2 mouseVelocity;
     private bool dragging = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -24,19 +26,24 @@ public class catBehavior : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        MousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.value);
+        mousePos = Camera.main.ScreenToWorldPoint(Mouse.current.position.value);
         if (Mouse.current.leftButton.isPressed)
         {
-            Collider2D hit = Physics2D.OverlapPoint(MousePos);
+            Collider2D hit = Physics2D.OverlapPoint(mousePos);
             if (hit == col)
             {
                 dragging = true;
+                lastMousePos = mousePos;
             }
             if (dragging)
             {
-                mouseVelocity = Mouse.current.delta.ReadValue();
+                mouseVelocity = (mousePos - lastMousePos) / Time.deltaTime;
                 stamina -= Time.deltaTime;
                 if (stamina <= 0f)
+                {
+                    dragging = false;
+                }
+                if (mouseVelocity.magnitude > maxDragSpeed)
                 {
                     dragging = false;
                 }
@@ -61,8 +68,9 @@ public class catBehavior : MonoBehaviour
     {
         if (dragging)
         {
-            rb.MovePosition(MousePos);
+            rb.MovePosition(mousePos);
             rb.linearVelocity = Vector2.zero;
+            
         }
     }
 }
